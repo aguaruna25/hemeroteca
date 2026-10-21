@@ -6,8 +6,8 @@ import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 
 const queryClient = new QueryClient();
-const router = createRouter({ routeTree, history: createHashHistory(), context: { queryClient }, defaultPreload: "intent" });
+const router = createRouter({ routeTree, history: createHashHistory(), context: { queryClient }, defaultPreload: false });
 
 declare module "@tanstack/react-router" { interface Register { router: typeof router } }
 
-createRoot(document.getElementById("root")!).render(<React.StrictMode><RouterProvider router={router} /></React.StrictMode>);
+createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);
