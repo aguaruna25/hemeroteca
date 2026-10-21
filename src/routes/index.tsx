@@ -62,6 +62,7 @@ function Index() {
       ...magazines.slice(0, 3).map((m) => ({ id: m.id, img: m.cover_url, kicker: "Recién agregada", title: `${m.title} ${m.issue}`, text: m.description || String(m.year) })),
       ...news.slice(0, 3).map((n) => ({ id: n.id, img: n.image_url, kicker: n.tag, title: n.title, text: n.summary || fmt(n.created_at) })),
     ];
+    if (items.length === 0) return [{ id: "welcome", img: fallback[0]!, kicker: "HEMEROTECA GAMER", title: "Revistas de videojuegos", text: "Explora nuestra biblioteca. Pronto habrá nuevas revistas." }];
     return items.map((it, k) => ({ ...it, img: it.img ?? fallback[k % 3]! }));
   }, [magazines, news]);
 
