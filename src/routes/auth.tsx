@@ -26,13 +26,17 @@ function AuthPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
+    try {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return setMsg("Correo o contraseña incorrectos.");
       nav({ to: "/admin" });
     } else {
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/admin" } });
+      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + window.location.pathname + "#/admin" } });
       setMsg(error ? error.message : "Revisa tu correo para confirmar la cuenta y luego inicia sesión.");
+    }
+    } catch (error) {
+      setMsg(error instanceof Error ? error.message : "No se pudo conectar. Inténtalo nuevamente.");
     }
   }
 
