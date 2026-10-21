@@ -1,0 +1,4 @@
+import React, { useState } from "react";
+import { createRoot } from "react-dom/client";
+function Test() { const [email,setEmail]=useState(""); const [msg,setMsg]=useState(""); return <main><h1>Prueba React sin enrutador</h1><p>Esta página usa React 19, pero no carga TanStack Router ni Supabase. No envía información.</p><label>Correo<input type="text" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Escribe aquí" style={{display:"block",width:"95%",padding:14,fontSize:18,margin:"12px 0 25px"}} /></label><label>Mensaje<textarea value={msg} onChange={e=>setMsg(e.target.value)} rows={4} placeholder="Escribe aquí" style={{display:"block",width:"95%",padding:14,fontSize:18,margin:"12px 0 25px"}} /></label><p style={{color:"#b5e65a"}}>React responde: {email.length} caracteres en correo y {msg.length} en mensaje.</p></main> }
+createRoot(document.getElementById("root")!).render(<Test />);
