@@ -19,13 +19,15 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const nav = useNavigate();
   const [mode, setMode] = useState<"in" | "up">("in");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
+    const form = e.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const email = String(data.get("email") ?? "").trim();
+    const password = String(data.get("password") ?? "");
     try {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -44,8 +46,8 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 font-sans">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-8">
         <h1 className="font-display text-2xl font-bold">{mode === "in" ? "Entrar al panel" : "Crear cuenta"}</h1>
-        <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="email" placeholder="Correo" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="password" placeholder="Contraseña" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="email" name="email" placeholder="Correo" autoComplete="email" required />
+        <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" type="password" name="password" placeholder="Contraseña" autoComplete={mode === "in" ? "current-password" : "new-password"} minLength={6} required />
         <button className="w-full rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground">{mode === "in" ? "Entrar" : "Registrarme"}</button>
         {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
         <button type="button" onClick={() => setMode(mode === "in" ? "up" : "in")} className="text-xs text-muted-foreground underline">
