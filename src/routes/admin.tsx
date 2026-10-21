@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
@@ -49,6 +49,7 @@ function Admin() {
   });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -76,15 +77,35 @@ function Admin() {
     setBusy(true); setMsg("");
     try {
       const cover_url = await uploadImage((f.get("cover") as File)?.size ? (f.get("cover") as File) : null);
-      const { error } = await supabase.from("magazines").insert({
+      const payload = {
         title: String(f.get("title")), issue: String(f.get("issue")), year: Number(f.get("year")),
-        description: String(f.get("description")), download_url: String(f.get("download_url")) || null, cover_url,
-      });
+        description: String(f.get("description")), download_url: String(f.get("download_url")) || null,
+        ...(cover_url ? { cover_url } : {}),
+      };
+      const { error } = editingId
+        ? await supabase.from("magazines").update(payload).eq("id", editingId)
+        : await supabase.from("magazines").insert(payload);
       if (error) throw error;
-      form.reset(); setMsg("Revista publicada ✓");
+      form.reset(); setEditingId(null); setMsg(editingId ? "Revista actualizada ✓" : "Revista publicada ✓");
       qc.invalidateQueries();
     } catch { setMsg("No se pudo guardar. Inténtalo de nuevo."); }
     setBusy(false);
+  }
+
+  function startEdit(m: any) {
+    setEditingId(m.id); setMsg("");
+    const form = document.getElementById("magazine-form") as HTMLFormElement | null;
+    if (!form) return;
+    for (const name of ["title", "issue", "year", "description", "download_url"]) {
+      const el = form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (el) el.value = String(m[name] ?? "");
+    }
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null); setMsg("");
+    (document.getElementById("magazine-form") as HTMLFormElement | null)?.reset();
   }
 
   async function addNews(e: React.FormEvent<HTMLFormElement>) {
@@ -155,14 +176,16 @@ function Admin() {
         </ul>
       ) : tab === "mag" ? (
         <>
-          <form onSubmit={addMagazine} className="mt-6 grid gap-3 rounded-2xl border border-border bg-card p-6 md:grid-cols-2">
+          <form id="magazine-form" onSubmit={addMagazine} className="mt-6 grid gap-3 rounded-2xl border border-border bg-card p-6 md:grid-cols-2">
             <input name="title" placeholder="Nombre de la revista" className={field} required />
             <input name="issue" placeholder="Número (ej. Nº 121)" className={field} />
             <input name="year" type="number" min={1980} max={2100} placeholder="Año" className={field} required />
             <input name="download_url" type="url" placeholder="Enlace de descarga (Drive, Mega…)" className={field} />
             <textarea name="description" placeholder="Descripción" className={`${field} md:col-span-2`} rows={3} />
             <label className="text-sm text-muted-foreground md:col-span-2">Portada <input name="cover" type="file" accept="image/*" className="ml-2 text-sm" /></label>
-            <button disabled={busy} className="rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground disabled:opacity-50 md:col-span-2">{busy ? "Guardando…" : "Publicar revista"}</button>
+            <button disabled={busy} className="rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground disabled:opacity-50 md:col-span-2">{busy ? "Guardando…" : editingId ? "Guardar cambios" : "Publicar revista"}</button>
+            {editingId && <button type="button" onClick={cancelEdit} disabled={busy} className="rounded-md border border-border py-2 text-sm md:col-span-2">Cancelar edición</button>}
+            {editingId && <p className="text-xs text-muted-foreground md:col-span-2">Si no eliges una nueva portada, se conservará la actual.</p>}
             {msg && <p className="text-sm text-muted-foreground md:col-span-2">{msg}</p>}
           </form>
           <ul className="mt-6 divide-y divide-border">
@@ -170,6 +193,7 @@ function Admin() {
               <li key={m.id} className="flex items-center gap-4 py-3">
                 {m.cover_url ? <img src={m.cover_url} alt="" className="h-14 w-10 rounded object-cover" /> : <div className="h-14 w-10 rounded bg-muted" />}
                 <div className="flex-1 text-sm"><p className="font-medium">{m.title} {m.issue}</p><p className="text-xs text-muted-foreground">{m.year}{m.download_url ? "" : " · sin enlace"}</p></div>
+                <button aria-label={`Editar ${m.title}`} title="Editar revista" onClick={() => startEdit(m)} className="text-muted-foreground hover:text-primary"><Pencil size={16} /></button>
                 <button aria-label="Eliminar" onClick={() => remove("magazines", m.id)} className="text-muted-foreground hover:text-destructive"><Trash2 size={16} /></button>
               </li>
             ))}
