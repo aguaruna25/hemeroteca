@@ -149,7 +149,7 @@ export function Admin() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-8 font-sans">
       <header className="flex items-center justify-between">
-        <Link to="/" className="font-display text-lg font-bold">HEMEROTECA<span className="text-primary">.</span>GAMER <span className="text-muted-foreground">/ panel</span></Link>
+        <a href={import.meta.env.BASE_URL} className="font-display text-lg font-bold">HEMEROTECA<span className="text-primary">.</span>GAMER <span className="text-muted-foreground">/ panel</span></a>
         <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground">Cerrar sesión</button>
       </header>
 
