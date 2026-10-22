@@ -16,7 +16,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-function AuthPage() {
+export function AuthPage() {
   const nav = useNavigate();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [msg, setMsg] = useState("");
