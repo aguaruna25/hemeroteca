@@ -87,7 +87,7 @@ function Index() {
           HEMEROTECA<span className="text-primary">.</span>GAMER
         </span>
         <nav className="flex gap-5">
-          <Link to="/contacto" className="text-sm text-muted-foreground hover:text-foreground">Pedir revista</Link>
+          <a href={`${import.meta.env.BASE_URL}diagnostico-contacto.html`} className="text-sm text-muted-foreground hover:text-foreground">Pedir revista</a>
           <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground">Panel</Link>
         </nav>
       </header>
