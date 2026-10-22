@@ -31,7 +31,7 @@ async function uploadImage(file: File | null) {
   return data?.signedUrl ?? null;
 }
 
-function Admin() {
+export function Admin() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const [state, setState] = useState<"loading" | "admin" | "denied">("loading");
