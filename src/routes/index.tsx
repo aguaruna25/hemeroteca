@@ -88,7 +88,7 @@ function Index() {
         </span>
         <nav className="flex gap-5">
           <a href={`${import.meta.env.BASE_URL}diagnostico-contacto.html`} className="text-sm text-muted-foreground hover:text-foreground">Pedir revista</a>
-          <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground">Panel</Link>
+          <a href={`${import.meta.env.BASE_URL}panel.html#/admin`} className="text-sm text-muted-foreground hover:text-foreground">Panel</a>
         </nav>
       </header>
 
