@@ -24,7 +24,7 @@ const schema = z.object({
 
 const field = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary";
 
-function Contacto() {
+export function Contacto() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [done, setDone] = useState(false);
