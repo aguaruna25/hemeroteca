@@ -60,8 +60,8 @@ export function Contacto() {
   return (
     <div className="min-h-screen font-sans">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        <Link to="/" className="font-display text-lg font-bold tracking-tight">HEMEROTECA<span className="text-primary">.</span>GAMER</Link>
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">Volver a la biblioteca</Link>
+        <a href={import.meta.env.BASE_URL} className="font-display text-lg font-bold tracking-tight">HEMEROTECA<span className="text-primary">.</span>GAMER</a>
+        <a href={import.meta.env.BASE_URL} className="text-sm text-muted-foreground hover:text-foreground">Volver a la biblioteca</a>
       </header>
       <main className="mx-auto max-w-xl px-6 py-10">
         <h1 className="font-display text-3xl font-bold">Pide una revista</h1>
