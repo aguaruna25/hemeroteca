@@ -124,6 +124,6 @@ body::before {
   background-image: linear-gradient(rgba(12, 14, 21, 0.87), rgba(12, 14, 21, 0.92)), url("/hemeroteca/fondo-gamer.jpg");
   background-position: center, top left;
   background-repeat: no-repeat, repeat;
-  background-size: cover, 360px 360px;
+  background-size: cover, 720px auto;
 }
 body { isolation: isolate; }
