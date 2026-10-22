@@ -50,6 +50,7 @@ export function Admin() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -114,15 +115,28 @@ export function Admin() {
     const f = new FormData(form);
     setBusy(true); setMsg("");
     try {
-      const image_url = await uploadImage((f.get("image") as File)?.size ? (f.get("image") as File) : null);
-      const { error } = await supabase.from("news").insert({
-        tag: String(f.get("tag")) || "Noticia", title: String(f.get("title")), summary: String(f.get("summary")), image_url,
-      });
+      const file = f.get("image") as File | null;
+      if (file?.size && !["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Formato no admitido: usa JPG, PNG o WebP.");
+      if (file?.size && file.size > 5 * 1024 * 1024) throw new Error("La imagen supera 5 MB.");
+      const image_url = await uploadImage(file?.size ? file : null);
+      const payload = { tag: String(f.get("tag")) || "Noticia", title: String(f.get("title")), summary: String(f.get("summary")), ...(image_url ? { image_url } : {}) };
+      const { error } = editingNewsId ? await supabase.from("news").update(payload).eq("id", editingNewsId) : await supabase.from("news").insert(payload);
       if (error) throw error;
-      form.reset(); setMsg("Noticia publicada ✓");
+      form.reset(); setMsg(editingNewsId ? "Noticia actualizada ✓" : "Noticia publicada ✓"); setEditingNewsId(null);
       qc.invalidateQueries();
-    } catch { setMsg("No se pudo guardar. Inténtalo de nuevo."); }
+    } catch (error) { setMsg(error instanceof Error ? error.message : "No se pudo guardar."); }
     setBusy(false);
+  }
+
+  function editNews(n: { id: string; title: string; tag: string; summary: string }) {
+    setEditingNewsId(n.id); setMsg("");
+    const form = document.getElementById("news-form") as HTMLFormElement | null;
+    if (!form) return;
+    for (const key of ["title", "tag", "summary"] as const) {
+      const el = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (el) el.value = n[key] ?? "";
+    }
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function remove(table: "magazines" | "news", id: string) {
@@ -201,18 +215,20 @@ export function Admin() {
         </>
       ) : (
         <>
-          <form onSubmit={addNews} className="mt-6 grid gap-3 rounded-2xl border border-border bg-card p-6 md:grid-cols-2">
-            <input name="title" placeholder="Titular" className={`${field} md:col-span-2`} required />
-            <input name="tag" placeholder="Etiqueta (Noticia, Industria…)" className={field} />
-            <label className="text-sm text-muted-foreground">Imagen <input name="image" type="file" accept="image/*" className="ml-2 text-sm" /></label>
-            <textarea name="summary" placeholder="Resumen" className={`${field} md:col-span-2`} rows={3} />
-            <button disabled={busy} className="rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground disabled:opacity-50 md:col-span-2">{busy ? "Guardando…" : "Publicar noticia"}</button>
+          <form id="news-form" onSubmit={addNews} className="mt-6 grid gap-3 rounded-2xl border border-border bg-card p-6 md:grid-cols-2">
+            <input name="title" placeholder="Titular" maxLength={90} className={`${field} md:col-span-2`} required />
+            <select name="tag" className={field}><option>Noticia</option><option>Industria</option><option>Lanzamientos</option><option>Retro</option><option>Tecnología</option><option>Eventos</option></select>
+            <label className="text-sm text-muted-foreground">Imagen (16:9 recomendado, 1200 × 675 px, máximo 5 MB) <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className="ml-2 text-sm" /></label>
+            <textarea name="summary" placeholder="Resumen o contenido de la noticia" className={`${field} md:col-span-2`} rows={5} required />
+            <button disabled={busy} className="rounded-md bg-primary py-2 text-sm font-medium text-primary-foreground disabled:opacity-50 md:col-span-2">{busy ? "Guardando…" : editingNewsId ? "Guardar cambios" : "Publicar noticia"}</button>
             {msg && <p className="text-sm text-muted-foreground md:col-span-2">{msg}</p>}
           </form>
           <ul className="mt-6 divide-y divide-border">
             {news.data?.map((n) => (
               <li key={n.id} className="flex items-center gap-4 py-3 text-sm">
+                {n.image_url && <img src={n.image_url} alt="" className="h-14 w-24 rounded object-cover" />}
                 <div className="flex-1"><p className="font-medium">{n.title}</p><p className="text-xs text-muted-foreground">{n.tag}</p></div>
+                <button aria-label={`Editar ${n.title}`} onClick={() => editNews(n)} className="text-muted-foreground hover:text-primary"><Pencil size={16} /></button>
                 <button aria-label="Eliminar" onClick={() => remove("news", n.id)} className="text-muted-foreground hover:text-destructive"><Trash2 size={16} /></button>
               </li>
             ))}

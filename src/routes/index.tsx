@@ -49,6 +49,7 @@ function Index() {
   const [i, setI] = useState(0);
   const [q, setQ] = useState("");
   const [dec, setDec] = useState("Todas");
+  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
   const { data: magazines = [] } = useQuery({
     queryKey: ["magazines"],
     queryFn: async () => (await supabase.from("magazines").select("*").order("created_at", { ascending: false })).data ?? [],
@@ -57,6 +58,7 @@ function Index() {
     queryKey: ["news"],
     queryFn: async () => (await supabase.from("news").select("*").order("created_at", { ascending: false })).data ?? [],
   });
+  const selectedNews = news.find((n) => n.id === selectedNewsId);
   const slides = useMemo(() => {
     const items = [
       ...magazines.slice(0, 3).map((m) => ({ id: m.id, img: m.cover_url, kicker: "Recién agregada", title: `${m.title} ${m.issue}`, text: m.description || String(m.year) })),
@@ -122,14 +124,32 @@ function Index() {
 
       <section className="mx-auto mt-12 grid max-w-7xl gap-4 px-6 md:grid-cols-3">
         {news.slice(0, 3).map((n) => (
-          <article key={n.id} className="rounded-xl border border-border bg-card p-5">
-            <span className="text-xs uppercase tracking-widest text-primary">{n.tag}</span>
-            <h3 className="mt-2 font-display font-medium">{n.title}</h3>
-            <p className="mt-3 text-xs text-muted-foreground">{fmt(n.created_at)}</p>
-          </article>
+          <button type="button" key={n.id} onClick={() => setSelectedNewsId(n.id)} className="overflow-hidden rounded-xl border border-border bg-card text-left hover:border-primary">
+            {n.image_url ? <img src={n.image_url} alt={n.title} loading="lazy" className="aspect-video w-full object-cover" /> : <div className="flex aspect-video items-center justify-center bg-secondary text-muted-foreground">Hemeroteca Gamer</div>}
+            <div className="p-5">
+              <span className="text-xs uppercase tracking-widest text-primary">{n.tag}</span>
+              <h3 className="mt-2 font-display text-lg font-semibold">{n.title}</h3>
+              <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{n.summary}</p>
+              <p className="mt-3 text-xs text-muted-foreground">{fmt(n.created_at)}</p>
+              <span className="mt-3 inline-block text-sm font-medium text-primary">Leer noticia →</span>
+            </div>
+          </button>
         ))}
       </section>
 
+      {selectedNews && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedNewsId(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="news-title" className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-border bg-card">
+            {selectedNews.image_url && <img src={selectedNews.image_url} alt={selectedNews.title} className="aspect-video w-full object-cover" />}
+            <div className="p-6 md:p-8">
+              <button type="button" onClick={() => setSelectedNewsId(null)} className="float-right rounded-md border border-border px-3 py-1 text-sm">Cerrar ×</button>
+              <p className="text-xs uppercase tracking-widest text-primary">{selectedNews.tag} · {fmt(selectedNews.created_at)}</p>
+              <h2 id="news-title" className="mt-4 font-display text-2xl font-bold">{selectedNews.title}</h2>
+              <p className="mt-5 whitespace-pre-wrap leading-relaxed text-muted-foreground">{selectedNews.summary}</p>
+            </div>
+          </section>
+        </div>
+      )}
       <section className="mx-auto mt-16 max-w-7xl px-6 pb-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-2xl font-bold">Biblioteca</h2>
