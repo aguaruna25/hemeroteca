@@ -112,3 +112,18 @@
 }
 
 @utility bg-overlay { background-image: var(--overlay); }
+
+/* Fondo gamer: textura proporcionada por el propietario. La capa oscura
+   conserva el contraste de los textos y tarjetas del diseño original. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(12, 14, 21, 0.87), rgba(12, 14, 21, 0.92)), url("/hemeroteca/fondo-gamer.jpg");
+  background-position: center, top left;
+  background-repeat: no-repeat, repeat;
+  background-size: cover, 360px 360px;
+}
+body { isolation: isolate; }
